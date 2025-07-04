@@ -1108,6 +1108,8 @@ def generate(clean_link, reference_link, output_link):
         log_memory("Uploaded to supabase, process done")
 
         print(f"✅ Uploaded to Supabase: {response}")
+        os.remove(trimmed_ref_path)
+        
         
         
 

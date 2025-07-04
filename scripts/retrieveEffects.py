@@ -7,11 +7,18 @@ def classify(ref_link):
     import tempfile
     import numpy as np
     import requests
+    import psutil
+    import os
+
+    def log_memory(tag=""):
+        process = psutil.Process(os.getpid())
+        mem = process.memory_info().rss / 1024 / 1024  # in MB
+        print(f"[MEMORY] {tag}: {mem:.2f} MB")
 
 
     #ref_link is the link to file on supabase storage, need to add logic to retrieve from supabase here
     
-
+    log_memory("starting out")
     def download_audio_from_supabase(url, save_path = "temp_audio.wav"):
         tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
         response = requests.get(url)
@@ -19,6 +26,7 @@ def classify(ref_link):
             tmp_file.write(response.content)
             tmp_file.close()
             print("Saved to temp:", tmp_file.name)
+            log_memory("Generated tmp file")
             return tmp_file.name
         else:
             print("Failed to download:", response.status_code)
@@ -26,9 +34,11 @@ def classify(ref_link):
         
     file_path = download_audio_from_supabase(ref_link)
     print("Downloaded file path")
+    log_memory("Downloaded file path")
     
     # Load trained model
     clf = joblib.load('./data/EGF_trained_model.pkl')
+    log_memory("Loaded model")
 
     # Define list of effect classes directly
     classes = [
@@ -70,13 +80,14 @@ def classify(ref_link):
     #file_path = "Reference guitar path"
 
     features = extract_features(file_path)
+    log_memory("Extracted features")
     probs = clf.predict_proba(features)[0]
     prediction_results = {}
     # Show top effects with confidence
     for effect, prob in sorted(zip(classes, probs), key=lambda x: x[1], reverse=True):
         prediction_results[effect] = float(prob)
         print(f"{effect:<15}: {prob*100:.2f}%")
-
+    log_memory("Generated predictions")
     print(prediction_results)
 
 
