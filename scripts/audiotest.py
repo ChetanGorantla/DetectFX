@@ -933,7 +933,7 @@ def generate(clean_link, reference_link, output_link):
     load_dotenv()
     from supabase import create_client, Client
     SUPABASE_URL = os.getenv("VITE_SUPABASE_URL")
-    SUPABASE_KEY = os.getenv("VITE_SUPABASE_SERVICE_ROLE_KEY")  # MUST use service key here
+    SUPABASE_KEY = os.getenv("VITE_SUPABASE_ANON_KEY")
     SUPABASE_BUCKET = "detectfx-bucket"
 
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
