@@ -4,7 +4,6 @@ def classify(ref_link):
     import json
     import pandas as pd
     import librosa
-    import soundfile
     import tempfile
     import numpy as np
     import requests
@@ -54,7 +53,7 @@ def classify(ref_link):
     def extract_features(file_path):
         try:
             print("trying to load via librosa")
-            y, sr = soundfile.load(file_path, sr=None)
+            y, sr = librosa.load(file_path, sr=None)
             print("Loaded audio:", file_path)
         except Exception as e:
             print("❌ Failed to load audio with librosa:", str(e))
