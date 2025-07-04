@@ -49,7 +49,7 @@ def watchdog():
 
 
 
-WATCHDOG_URL = f"{os.getenv("VITE_BACKEND_ENDPOINT")}/watchdog"
+WATCHDOG_URL = f"{os.getenv('VITE_BACKEND_ENDPOINT')}/watchdog"
 
 def ping_watchdog():
     try:
