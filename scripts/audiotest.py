@@ -13,10 +13,42 @@ def generate(clean_link, reference_link, output_link):
     import psutil
     import gc
 
+    def cleanup_memory():
+        """Aggressive memory cleanup"""
+        gc.collect()  # Force garbage collection
+        
+        # Clear NumPy cache
+        if hasattr(np, 'clear_cache'):
+            np.clear_cache()
+        
+        # Clear librosa cache
+        if hasattr(librosa, 'cache'):
+            librosa.cache.clear()
+
     def log_memory(tag=""):
+        """Memory logging with cleanup suggestion"""
         process = psutil.Process(os.getpid())
         mem = process.memory_info().rss / 1024 / 1024  # in MB
         print(f"[MEMORY] {tag}: {mem:.2f} MB")
+        return mem
+    
+    def safe_delete_variables(*variables):
+        """Safely delete variables and force garbage collection"""
+        for var in variables:
+            if var is not None:
+                del var
+        gc.collect()
+
+    def cleanup_temp_files(temp_files):
+        """Clean up temporary files safely"""
+        for temp_file in temp_files:
+            try:
+                if hasattr(temp_file, 'name'):
+                    os.unlink(temp_file.name)
+                elif isinstance(temp_file, str) and os.path.exists(temp_file):
+                    os.unlink(temp_file)
+            except (OSError, FileNotFoundError):
+                pass
 
     def test(input_path, output_path):
         audio = AudioSegment.from_file(input_path)
@@ -58,7 +90,7 @@ def generate(clean_link, reference_link, output_link):
 
         # Combine into a vector
         features = np.array([centroid, rolloff, flatness, rms, zcr] + list(mfcc))
-        del y, mfcc
+        del y, sr, centroid, rolloff, flatness, mfcc, rms, zcr
         gc.collect()
         return features
 
@@ -141,24 +173,25 @@ def generate(clean_link, reference_link, output_link):
                     input_path = temp_input.name
                     output_path = input_path.replace(".wav", "_comp.wav")
 
-                    
+                # ✅ Step 1: Export valid audio to the temp input file
+                audio.export(input_path, format="wav")
 
-                    subprocess.run([
-                        "sox", input_path, output_path,
-                        "compand", "0.3,1", "6:-70,-60,-20", "-5", "-90", "0.2"
-                    ], check=True)
+                # ✅ Step 2: Run SoX on that valid WAV file
+                subprocess.run([
+                    "sox", input_path, output_path,
+                    "compand", "0.3,1", "6:-70,-60,-20", "-5", "-90", "0.2"
+                ], check=True)
 
-                    compressed_audio = AudioSegment.from_file(output_path)
-                    compressed_audio.export(input_path, format="wav")
+                # ✅ Step 3: Load the processed file back into memory
+                compressed_audio = AudioSegment.from_file(output_path)
 
-                # Clean up temp files
+                # ✅ Step 4: Clean up
                 try:
                     os.remove(input_path)
                     os.remove(output_path)
                 except FileNotFoundError:
                     pass
 
-                # Optional: Free original audio object
                 del audio
                 gc.collect()
 
