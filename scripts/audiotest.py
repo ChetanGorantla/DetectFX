@@ -11,6 +11,7 @@ def generate(clean_link, reference_link, output_link):
     from scipy.io.wavfile import write
     import tempfile
     import psutil
+    import gc
 
     def log_memory(tag=""):
         process = psutil.Process(os.getpid())
@@ -122,14 +123,28 @@ def generate(clean_link, reference_link, output_link):
             elif effect["effect"] == "compressor":
                 # Use SoX for real compression
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_input:
-                    audio.export(temp_input.name, format="wav")
-                    output_path = temp_input.name.replace(".wav", "_comp.wav")
-                    subprocess.call([
-                        "sox", temp_input.name, output_path,
+                    input_path = temp_input.name
+                    output_path = input_path.replace(".wav", "_comp.wav")
+
+                    audio.export(input_path, format="wav")
+
+                    subprocess.run([
+                        "sox", input_path, output_path,
                         "compand", "0.3,1", "6:-70,-60,-20", "-5", "-90", "0.2"
-                    ])
-                    audio = AudioSegment.from_file(output_path)
+                    ], check=True)
+
+                    compressed_audio = AudioSegment.from_file(output_path)
+
+                # Clean up temp files
+                try:
+                    os.remove(input_path)
                     os.remove(output_path)
+                except FileNotFoundError:
+                    pass
+
+                # Optional: Free original audio object
+                del audio
+                gc.collect()
 
             elif effect["effect"] == "distortion":
                 # Approximate light distortion with gain + compression
@@ -957,9 +972,10 @@ def generate(clean_link, reference_link, output_link):
             return parsed.path.split(prefix)[-1]
         raise ValueError("Invalid Supabase public URL")
     
-    
-    input_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
-    ref_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
+    t1 = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+    t2 = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+    input_file = t1.name
+    ref_file = t2.name
 
     relative_clean_link = extract_path_from_url(clean_link)
     print("RELATIVE CLEAN LINK:", relative_clean_link)
@@ -989,7 +1005,8 @@ def generate(clean_link, reference_link, output_link):
         input_audio = AudioSegment.from_file(input_file)
 
         # ✅ Save preprocessed clean audio temporarily for feature extraction
-        temp_input_path = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
+        t3 = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        temp_input_path = t3.name
         input_audio.export(temp_input_path, format="wav")
 
         guitar_path = ref_file
@@ -1019,7 +1036,8 @@ def generate(clean_link, reference_link, output_link):
         log_memory("Trimmed audio")
 
         # Export trimmed reference
-        trimmed_ref_path = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
+        t4 = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        trimmed_ref_path = t4.name
         ref_trimmed_audio.export(trimmed_ref_path, format="wav")
 
         # ✅ Use trimmed reference from here on
@@ -1066,7 +1084,8 @@ def generate(clean_link, reference_link, output_link):
 
         log_memory("Computed effect chain")
 
-        first_output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
+        t5 = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        first_output_path = t5.name
 
         process_full_chain(
             input_path=temp_input_path,
@@ -1077,7 +1096,8 @@ def generate(clean_link, reference_link, output_link):
         )
         log_memory("Process 1")
 
-        second_output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
+        t6 = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        second_output_path = t6.name
 
         final_processing_touchups(
             processed_path=first_output_path,
@@ -1086,7 +1106,9 @@ def generate(clean_link, reference_link, output_link):
         )
         log_memory("Process 2")
 
-        third_output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
+
+        t7 = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        third_output_path = t7.name
 
         match_volume_to_reference(
             processed_path=second_output_path,
@@ -1108,9 +1130,15 @@ def generate(clean_link, reference_link, output_link):
         log_memory("Uploaded to supabase, process done")
 
         print(f"✅ Uploaded to Supabase: {response}")
-        os.remove(trimmed_ref_path)
+        os.remove(t1)
+        os.remove(t2)
+        os.remove(t3)
+        os.remove(t4)
+        os.remove(t5)
+        os.remove(t6)
+        os.remove(t7)
         
-        
+        log_memory("Deleted tmp files")
         
 
         print("Final process complete")
