@@ -52,7 +52,7 @@ def watchdog():
 clf = joblib.load('./data/EGF_trained_model.pkl')
 
 app = FastAPI()
-app.include_router(watchdog)
+app.include_router(router)
 
 app.add_middleware(
     CORSMiddleware,
