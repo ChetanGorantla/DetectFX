@@ -15,4 +15,3 @@ soundfile==0.13.1
 supabase==2.16.0
 uvicorn
 psutil
-gc
