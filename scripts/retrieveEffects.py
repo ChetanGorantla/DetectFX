@@ -49,9 +49,10 @@ def classify(ref_link):
 
 
 
-
+    print("loaded model")
     def extract_features(file_path):
         try:
+            print("trying to load via librosa")
             y, sr = librosa.load(file_path, sr=None)
             print("Loaded audio:", file_path)
         except Exception as e:
