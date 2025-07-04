@@ -919,12 +919,12 @@ def generate(clean_link, reference_link, output_link):
             return signal + transients * gain
 
         def simple_compressor(signal, threshold=0.25, ratio=2.5):
-            compressed = np.copy(signal)
+            
             over_threshold = np.abs(signal) > threshold
-            compressed[over_threshold] = np.sign(signal[over_threshold]) * (
+            signal[over_threshold] = np.sign(signal[over_threshold]) * (
                 threshold + (np.abs(signal[over_threshold]) - threshold) / ratio
             )
-            return compressed
+            return signal
 
         # Processing chain
         processed = apply_low_shelf(signal, sr, freq=200, gain_db=1.5)

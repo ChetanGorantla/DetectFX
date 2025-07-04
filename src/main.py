@@ -1,20 +1,58 @@
 #fastapi server
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
+import psutil
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sys
 import os
 import joblib
+import requests
+
 # Add the parent directory (main_dir) to the Python path
 
 # Now you can import the function from scripts
 from scripts.retrieveEffects import classify, testClassify
 from scripts.audiotest import generate
 
+router = APIRouter()
+HEROKU_API_KEY = os.getenv("HEROKU_API_KEY")
+HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
+RAM_LIMIT_MB = 600
+
+@router.get("/watchdog")
+def watchdog():
+    process = psutil.Process(os.getpid())
+    mem = process.memory_info().rss / 1024 / 1024  # in MB
+
+    print(f"[WATCHDOG] Memory usage: {mem:.2f} MB")
+
+    if mem > RAM_LIMIT_MB:
+        print("[WATCHDOG] Memory threshold exceeded. Restarting dyno...")
+
+        if not HEROKU_API_KEY or not HEROKU_APP_NAME:
+            raise HTTPException(status_code=500, detail="Heroku credentials not set")
+
+        response = requests.delete(
+            f"https://api.heroku.com/apps/{HEROKU_APP_NAME}/dynos",
+            headers={
+                "Accept": "application/vnd.heroku+json; version=3",
+                "Authorization": f"Bearer {HEROKU_API_KEY}"
+            }
+        )
+
+        if response.status_code == 202:
+            return {"status": "Restart triggered", "memory": f"{mem:.2f} MB"}
+        else:
+            raise HTTPException(status_code=500, detail=f"Heroku restart failed: {response.text}")
+
+    return {"status": "OK", "memory": f"{mem:.2f} MB"}
+
+
 
 clf = joblib.load('./data/EGF_trained_model.pkl')
 
 app = FastAPI()
+app.include_router(watchdog)
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,6 +61,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 
 
 
