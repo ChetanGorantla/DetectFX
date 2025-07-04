@@ -49,6 +49,16 @@ def watchdog():
 
 
 
+WATCHDOG_URL = f"{os.getenv("VITE_BACKEND_ENDPOINT")}/watchdog"
+
+def ping_watchdog():
+    try:
+        res = requests.get(WATCHDOG_URL)
+        print("[WATCHDOG] Pinged:", res.status_code, res.json())
+    except Exception as e:
+        print("[WATCHDOG] Error:", e)
+
+
 clf = joblib.load('./data/EGF_trained_model.pkl')
 
 app = FastAPI()
@@ -84,12 +94,14 @@ def homePage():
 def returnResults(data:InputData):
     print("Recieved post request")
     print("Classifying: ", data.supabase_file_link)
+    ping_watchdog()
     return {"result": classify(data.supabase_file_link, clf)}
 
 @app.post("/generate")
 def returnResults(data:GenerationInputData):
     print("Recieved post request")
     print("Classifying: ", data.clean_file_link, data.reference_file_link, ", outputting to:", data.output_file_link)
+    ping_watchdog()
     return {"result": generate(data.clean_file_link, data.reference_file_link, data.output_file_link)}
 
 @app.post("/testresults")
