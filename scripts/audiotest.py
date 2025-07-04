@@ -143,72 +143,64 @@ def generate(clean_link, reference_link, output_link):
         return effect_chain
 
     def apply_effect_chain(audio: AudioSegment, effect_chain: list) -> AudioSegment:
-        audio = apply_distortion(audio, intensity="high")
-        current_audio = audio
+        current_audio = apply_distortion(audio, intensity="high")
+
         for effect in effect_chain:
             if effect["effect"] == "gain":
-                new_audio = audio + effect["amount_db"]
-                if current_audio != audio:  # Don't delete original input
+                new_audio = current_audio + effect["amount_db"]
+                if new_audio != current_audio:
                     del current_audio
                 current_audio = new_audio
                 gc.collect()
 
             elif effect["effect"] == "lowpass":
-                new_audio = audio.low_pass_filter(effect["cutoff"])
-                if current_audio != audio:  # Don't delete original input
+                new_audio = current_audio.low_pass_filter(effect["cutoff"])
+                if new_audio != current_audio:
                     del current_audio
                 current_audio = new_audio
                 gc.collect()
 
             elif effect["effect"] == "highpass":
-                new_audio = audio.high_pass_filter(effect["cutoff"])
-                if current_audio != audio:  # Don't delete original input
+                new_audio = current_audio.high_pass_filter(effect["cutoff"])
+                if new_audio != current_audio:
                     del current_audio
                 current_audio = new_audio
                 gc.collect()
 
             elif effect["effect"] == "compressor":
-                # Use SoX for real compression
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_input:
                     input_path = temp_input.name
                     output_path = input_path.replace(".wav", "_comp.wav")
 
-                # ✅ Step 1: Export valid audio to the temp input file
-                audio.export(input_path, format="wav")
+                current_audio.export(input_path, format="wav")
 
-                # ✅ Step 2: Run SoX on that valid WAV file
                 subprocess.run([
                     "sox", input_path, output_path,
                     "compand", "0.3,1", "6:-70,-60,-20", "-5", "-90", "0.2"
                 ], check=True)
 
-                # ✅ Step 3: Load the processed file back into memory
                 compressed_audio = AudioSegment.from_file(output_path)
 
-                # ✅ Step 4: Clean up
                 try:
                     os.remove(input_path)
                     os.remove(output_path)
                 except FileNotFoundError:
                     pass
 
-                del audio
+                del current_audio
+                current_audio = compressed_audio
                 gc.collect()
 
             elif effect["effect"] == "distortion":
-                # Approximate light distortion with gain + compression
-                audio += 10
-                new_audio = audio.compress_dynamic_range()
-                if current_audio != audio:  # Don't delete original input
-                    del current_audio
-                current_audio = new_audio
-                gc.collect()
+                current_audio += 10
+                current_audio = current_audio.compress_dynamic_range()
 
             elif effect["effect"] == "eq":
-                # Future: match specific MFCC bands using sox equalizer
+                # Placeholder for future EQ
                 pass
-        
+
         return current_audio
+
 
     def apply_reverb_chorus(signal, sr, delta_vector, clean_mfcc, ref_mfcc):
         if should_apply_chorus(clean_mfcc, ref_mfcc):
