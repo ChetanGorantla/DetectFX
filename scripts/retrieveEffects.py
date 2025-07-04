@@ -25,6 +25,7 @@ def classify(ref_link):
             return None
         
     file_path = download_audio_from_supabase(ref_link)
+    print("Downloaded file path")
     
     # Load trained model
     clf = joblib.load('./data/EGF_trained_model.pkl')
@@ -50,7 +51,12 @@ def classify(ref_link):
 
 
     def extract_features(file_path):
-        y, sr = librosa.load(file_path, sr=None)
+        try:
+            y, sr = librosa.load(file_path, sr=None)
+            print("Loaded audio:", file_path)
+        except Exception as e:
+            print("❌ Failed to load audio with librosa:", str(e))
+            return None
         features = []
         features.append(np.mean(librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13).T, axis=0))
         features.append(np.mean(librosa.feature.zero_crossing_rate(y).T, axis=0))
