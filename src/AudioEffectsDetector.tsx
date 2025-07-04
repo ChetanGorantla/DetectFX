@@ -397,6 +397,7 @@ const fetchWithTimeout = async ({
       
       try {
         //
+        console.log("Fetching the send data");
         const res = await fetch(`${import.meta.env.VITE_BACKEND_ENDPOINT}/results`, {
           method: "POST",
           headers: {
@@ -404,6 +405,7 @@ const fetchWithTimeout = async ({
           },
           body: JSON.stringify({ supabase_file_link: inputtedUrl }),
         });
+        console.log("Able to send the data");
 
 
         if (!res || !res.ok) {

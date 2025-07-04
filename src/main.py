@@ -6,7 +6,6 @@ import sys
 import os
 
 # Add the parent directory (main_dir) to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Now you can import the function from scripts
 from scripts.retrieveEffects import classify, testClassify
@@ -18,11 +17,12 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = ["http://localhost:5173"],
-    allow_credentials = True,
-    allow_methods = ["*"],
+    allow_origins=["*"],  # Or use your frontend domain
+    allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
-) 
+)
+
 
 
 
@@ -41,11 +41,13 @@ def homePage():
 #perform classifications, return result
 @app.post("/results")
 def returnResults(data:InputData):
+    print("Recieved post request")
     print("Classifying: ", data.supabase_file_link)
     return {"result": classify(data.supabase_file_link)}
 
 @app.post("/generate")
 def returnResults(data:GenerationInputData):
+    print("Recieved post request")
     print("Classifying: ", data.clean_file_link, data.reference_file_link, ", outputting to:", data.output_file_link)
     return {"result": generate(data.clean_file_link, data.reference_file_link, data.output_file_link)}
 
