@@ -58,6 +58,8 @@ def generate(clean_link, reference_link, output_link):
 
         # Combine into a vector
         features = np.array([centroid, rolloff, flatness, rms, zcr] + list(mfcc))
+        del y, mfcc
+        gc.collect()
         return features
 
     def map_delta_to_dsp(delta, feature_names, thresholds):
@@ -110,15 +112,28 @@ def generate(clean_link, reference_link, output_link):
 
     def apply_effect_chain(audio: AudioSegment, effect_chain: list) -> AudioSegment:
         audio = apply_distortion(audio, intensity="high")
+        current_audio = audio
         for effect in effect_chain:
             if effect["effect"] == "gain":
-                audio = audio + effect["amount_db"]
+                new_audio = audio + effect["amount_db"]
+                if current_audio != audio:  # Don't delete original input
+                    del current_audio
+                current_audio = new_audio
+                gc.collect()
 
             elif effect["effect"] == "lowpass":
-                audio = audio.low_pass_filter(effect["cutoff"])
+                new_audio = audio.low_pass_filter(effect["cutoff"])
+                if current_audio != audio:  # Don't delete original input
+                    del current_audio
+                current_audio = new_audio
+                gc.collect()
 
             elif effect["effect"] == "highpass":
-                audio = audio.high_pass_filter(effect["cutoff"])
+                new_audio = audio.high_pass_filter(effect["cutoff"])
+                if current_audio != audio:  # Don't delete original input
+                    del current_audio
+                current_audio = new_audio
+                gc.collect()
 
             elif effect["effect"] == "compressor":
                 # Use SoX for real compression
@@ -126,7 +141,7 @@ def generate(clean_link, reference_link, output_link):
                     input_path = temp_input.name
                     output_path = input_path.replace(".wav", "_comp.wav")
 
-                    audio.export(input_path, format="wav")
+                    
 
                     subprocess.run([
                         "sox", input_path, output_path,
@@ -134,6 +149,7 @@ def generate(clean_link, reference_link, output_link):
                     ], check=True)
 
                     compressed_audio = AudioSegment.from_file(output_path)
+                    compressed_audio.export(input_path, format="wav")
 
                 # Clean up temp files
                 try:
@@ -148,14 +164,18 @@ def generate(clean_link, reference_link, output_link):
 
             elif effect["effect"] == "distortion":
                 # Approximate light distortion with gain + compression
-                audio = audio + 10
-                audio = audio.compress_dynamic_range()
+                new_audio = audio + 10
+                new_audio = new_audio.compress_dynamic_range()
+                if current_audio != audio:  # Don't delete original input
+                    del current_audio
+                current_audio = new_audio
+                gc.collect()
 
             elif effect["effect"] == "eq":
                 # Future: match specific MFCC bands using sox equalizer
                 pass
         
-        return audio
+        return current_audio
 
     def apply_reverb_chorus(signal, sr, delta_vector, clean_mfcc, ref_mfcc):
         if should_apply_chorus(clean_mfcc, ref_mfcc):
@@ -316,6 +336,10 @@ def generate(clean_link, reference_link, output_link):
             y = librosa.to_mono(y)
 
         mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=n_mfcc)
+
+        # CRITICAL: Delete large audio array
+        del y
+        gc.collect()
         return mfcc  # shape: (n_mfcc, time)
 
 
@@ -985,6 +1009,9 @@ def generate(clean_link, reference_link, output_link):
     # Save to disk
     with open(input_file, "wb") as f:
         f.write(input_response)
+
+    del input_response
+    gc.collect()
     print(f"✅ File downloaded and saved to: {input_file}")
 
     log_memory("Clean file downloaded to disk")
