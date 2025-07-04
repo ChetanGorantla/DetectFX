@@ -141,7 +141,7 @@ const AudioEffectsApplier: React.FC = () => {
     
       
       try {
-
+        //${import.meta.env.VITE_BACKEND_ENDPOINT}/generate
         const res = await fetch(`${import.meta.env.VITE_BACKEND_ENDPOINT}/generate`, {
           method:"POST",
           headers:{

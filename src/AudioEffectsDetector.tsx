@@ -396,7 +396,7 @@ const fetchWithTimeout = async ({
     
       
       try {
-
+        //
         const res = await fetch(`${import.meta.env.VITE_BACKEND_ENDPOINT}/results`, {
           method: "POST",
           headers: {
