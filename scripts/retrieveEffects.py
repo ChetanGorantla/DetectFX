@@ -9,6 +9,7 @@ def classify(ref_link, clf):
     import requests
     import psutil
     import os
+    import gc
 
     def log_memory(tag=""):
         process = psutil.Process(os.getpid())
@@ -68,13 +69,38 @@ def classify(ref_link, clf):
         except Exception as e:
             print("❌ Failed to load audio with librosa:", str(e))
             return None
-        features = []
-        features.append(np.mean(librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13).T, axis=0))
-        features.append(np.mean(librosa.feature.zero_crossing_rate(y).T, axis=0))
-        features.append(np.mean(librosa.feature.spectral_centroid(y=y, sr=sr).T, axis=0))
-        features.append(np.mean(librosa.feature.spectral_bandwidth(y=y, sr=sr).T, axis=0))
-
-        return np.concatenate(features).reshape(1,-1)
+        
+        # Pre-allocate result array to avoid list appends and concatenation
+        # 13 MFCC + 1 ZCR + 1 spectral_centroid + 1 spectral_bandwidth = 16 features
+        features = np.zeros(16, dtype=np.float32)
+        
+        # Extract MFCC features
+        mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+        features[:13] = np.mean(mfcc, axis=1)
+        del mfcc  # Explicitly delete large intermediate array
+        
+        # Extract zero crossing rate
+        zcr = librosa.feature.zero_crossing_rate(y)
+        features[13] = np.mean(zcr)
+        del zcr  # Clean up
+        
+        # Extract spectral centroid
+        spec_cent = librosa.feature.spectral_centroid(y=y, sr=sr)
+        features[14] = np.mean(spec_cent)
+        del spec_cent  # Clean up
+        
+        # Extract spectral bandwidth
+        spec_bw = librosa.feature.spectral_bandwidth(y=y, sr=sr)
+        features[15] = np.mean(spec_bw)
+        del spec_bw  # Clean up
+        
+        # Clean up audio data
+        del y, sr
+        
+        # Force garbage collection to free memory immediately
+        gc.collect()
+        
+        return features.reshape(1, -1)
 
 
     #file_path = "Reference guitar path"

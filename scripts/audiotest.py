@@ -1182,13 +1182,13 @@ def generate(clean_link, reference_link, output_link):
         log_memory("Uploaded to supabase, process done")
 
         print(f"✅ Uploaded to Supabase: {response}")
-        os.remove(t1)
-        os.remove(t2)
-        os.remove(t3)
-        os.remove(t4)
-        os.remove(t5)
-        os.remove(t6)
-        os.remove(t7)
+        os.remove(t1.name)
+        os.remove(t2.name)
+        os.remove(t3.name)
+        os.remove(t4.name)
+        os.remove(t5.name)
+        os.remove(t6.name)
+        os.remove(t7.name)
         
         log_memory("Deleted tmp files")
         
