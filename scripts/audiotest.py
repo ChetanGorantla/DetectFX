@@ -197,8 +197,8 @@ def generate(clean_link, reference_link, output_link):
 
             elif effect["effect"] == "distortion":
                 # Approximate light distortion with gain + compression
-                new_audio = audio + 10
-                new_audio = new_audio.compress_dynamic_range()
+                audio += 10
+                new_audio = audio.compress_dynamic_range()
                 if current_audio != audio:  # Don't delete original input
                     del current_audio
                 current_audio = new_audio
