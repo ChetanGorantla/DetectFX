@@ -17,6 +17,7 @@ from scripts.audiotest import generate
 router = APIRouter()
 HEROKU_API_KEY = os.getenv("HEROKU_API_KEY")
 HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
+HEROKU_LINK = os.getenv("VITE_BACKEND_ENDPOINT")
 RAM_LIMIT_MB = 400
 
 @router.get("/watchdog")
@@ -49,7 +50,7 @@ def watchdog():
 
 
 
-WATCHDOG_URL = f"{os.getenv('VITE_BACKEND_ENDPOINT')}/watchdog"
+WATCHDOG_URL = f"{HEROKU_LINK}/watchdog"
 
 def ping_watchdog():
     try:
