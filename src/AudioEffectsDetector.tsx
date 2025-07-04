@@ -404,7 +404,7 @@ const fetchWithTimeout = async ({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ supabase_file_link: inputtedUrl }),
-          timeout: 1000, // 10 seconds
+          timeout: 180000, // 10 seconds
         });
 
         if (!res || !res.ok) {
