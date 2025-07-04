@@ -10,6 +10,12 @@ def generate(clean_link, reference_link, output_link):
     from scipy.signal import butter, lfilter
     from scipy.io.wavfile import write
     import tempfile
+    import psutil
+
+    def log_memory(tag=""):
+        process = psutil.Process(os.getpid())
+        mem = process.memory_info().rss / 1024 / 1024  # in MB
+        print(f"[MEMORY] {tag}: {mem:.2f} MB")
 
     def test(input_path, output_path):
         audio = AudioSegment.from_file(input_path)
@@ -936,6 +942,7 @@ def generate(clean_link, reference_link, output_link):
 
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
     
+    log_memory("initialized supabase client")
 
     
     
@@ -945,9 +952,11 @@ def generate(clean_link, reference_link, output_link):
         parsed = urlparse(url)
         # Remove `/storage/v1/object/public/<bucket-name>/` part
         prefix = f"/storage/v1/object/public/{SUPABASE_BUCKET}/"
+        log_memory("extracted supabase file path")
         if prefix in parsed.path:
             return parsed.path.split(prefix)[-1]
         raise ValueError("Invalid Supabase public URL")
+    
     
     input_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
     ref_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
@@ -962,6 +971,8 @@ def generate(clean_link, reference_link, output_link):
         f.write(input_response)
     print(f"✅ File downloaded and saved to: {input_file}")
 
+    log_memory("Clean file downloaded to disk")
+
     relative_reference_link = extract_path_from_url(reference_link)
     print("RELATIVE REFERENCE LINK:", relative_reference_link)
     # Download the file
@@ -971,6 +982,8 @@ def generate(clean_link, reference_link, output_link):
     with open(ref_file, "wb") as f:
         f.write(ref_response)
     print(f"✅ File downloaded and saved to: {ref_file}")
+
+    log_memory("Reference file downloaded to disk")
 
     if (input_file != ""):
         input_audio = AudioSegment.from_file(input_file)
@@ -982,6 +995,8 @@ def generate(clean_link, reference_link, output_link):
         guitar_path = ref_file
 
         ref_audio = AudioSegment.from_file(ref_file)
+
+        log_memory("Loaded audios")
 
         # Convert to mono NumPy array
         samples = np.array(ref_audio.get_array_of_samples()).astype(np.float32)
@@ -1001,6 +1016,8 @@ def generate(clean_link, reference_link, output_link):
             channels=1
         )
 
+        log_memory("Trimmed audio")
+
         # Export trimmed reference
         trimmed_ref_path = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
         ref_trimmed_audio.export(trimmed_ref_path, format="wav")
@@ -1008,7 +1025,7 @@ def generate(clean_link, reference_link, output_link):
         # ✅ Use trimmed reference from here on
         guitar_path = trimmed_ref_path
 
-        
+        log_memory("Exported trimmed audio")
 
         
         # ⬇️ Use preprocessed file in downstream steps
@@ -1030,6 +1047,8 @@ def generate(clean_link, reference_link, output_link):
         print("Reference guitar vector", ref_features)
         print("Delta", delta)
 
+        log_memory("Computed delta vectors")
+
         effect_chain = map_delta_to_dsp(delta, feature_names, thresholds)
 
         clean_mfcc = extract_mfcc(temp_input_path)
@@ -1045,6 +1064,8 @@ def generate(clean_link, reference_link, output_link):
 
         print(effect_chain)
 
+        log_memory("Computed effect chain")
+
         first_output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
 
         process_full_chain(
@@ -1054,6 +1075,7 @@ def generate(clean_link, reference_link, output_link):
             clean_mfcc=clean_mfcc,
             ref_mfcc=ref_mfcc
         )
+        log_memory("Process 1")
 
         second_output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
 
@@ -1062,7 +1084,7 @@ def generate(clean_link, reference_link, output_link):
             reference_path=guitar_path,
             output_path=second_output_path
         )
-        
+        log_memory("Process 2")
 
         third_output_path = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
 
@@ -1071,6 +1093,7 @@ def generate(clean_link, reference_link, output_link):
             reference_path=guitar_path,
             output_path=third_output_path
         )
+        log_memory("Process 3")
 
         print("Uploading to:", output_link)
         print("Using bucket:", SUPABASE_BUCKET)
@@ -1081,6 +1104,8 @@ def generate(clean_link, reference_link, output_link):
                 f,
                 {"cacheControl": "3600", "x-upsert": "true", "content-type": "audio/wav"}
             )
+
+        log_memory("Uploaded to supabase, process done")
 
         print(f"✅ Uploaded to Supabase: {response}")
         
