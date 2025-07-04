@@ -397,15 +397,14 @@ const fetchWithTimeout = async ({
       
       try {
 
-        const res = await fetchWithTimeout({
-          url: `${import.meta.env.VITE_BACKEND_ENDPOINT}/results`,
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_ENDPOINT}/results`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ supabase_file_link: inputtedUrl }),
-          timeout: 180000, // 10 seconds
         });
+
 
         if (!res || !res.ok) {
           const text = res ? await res.text() : "No response";
