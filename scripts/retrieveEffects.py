@@ -1,5 +1,5 @@
 
-def classify(ref_link):
+def classify(ref_link, clf):
     import joblib
     import json
     import pandas as pd
@@ -37,7 +37,7 @@ def classify(ref_link):
     log_memory("Downloaded file path")
     
     # Load trained model
-    clf = joblib.load('./data/EGF_trained_model.pkl')
+    
     log_memory("Loaded model")
 
     # Define list of effect classes directly

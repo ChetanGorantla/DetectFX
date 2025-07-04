@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sys
 import os
-
+import joblib
 # Add the parent directory (main_dir) to the Python path
 
 # Now you can import the function from scripts
@@ -12,6 +12,7 @@ from scripts.retrieveEffects import classify, testClassify
 from scripts.audiotest import generate
 
 
+clf = joblib.load('./data/EGF_trained_model.pkl')
 
 app = FastAPI()
 
@@ -43,7 +44,7 @@ def homePage():
 def returnResults(data:InputData):
     print("Recieved post request")
     print("Classifying: ", data.supabase_file_link)
-    return {"result": classify(data.supabase_file_link)}
+    return {"result": classify(data.supabase_file_link, clf)}
 
 @app.post("/generate")
 def returnResults(data:GenerationInputData):
