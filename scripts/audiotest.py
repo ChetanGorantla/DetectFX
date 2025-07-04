@@ -6,10 +6,8 @@ def generate(clean_link, reference_link, output_link):
     import numpy as np
     import subprocess
     import tempfile
-    from scipy.signal import fftconvolve
     import soundfile as sf
-    from scipy.signal import butter, lfilter, sawtooth
-    import pyloudnorm as pyln
+    from scipy.signal import butter, lfilter
     from scipy.io.wavfile import write
     import tempfile
 

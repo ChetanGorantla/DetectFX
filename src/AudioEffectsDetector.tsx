@@ -347,6 +347,47 @@ const AudioEffectsDetector: React.FC = () => {
     return publicUrl;
   }
 
+  type FetchWithTimeoutParams = {
+  url: string;
+  method?: string;
+  headers?: HeadersInit;
+  body?: any;
+  timeout?: number; // in ms
+};
+
+const fetchWithTimeout = async ({
+    url,
+    method = "GET",
+    headers = {},
+    body = null,
+    timeout = 10000,
+  }: FetchWithTimeoutParams): Promise<Response | null> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers,
+        body,
+        signal: controller.signal,
+      });
+
+      return res;
+    } catch (err) {
+      if ((err as DOMException).name === "AbortError") {
+        showAlert("Process Timed Out");
+      } else {
+        showAlert("Fetch Failed");
+      }
+      setIsProcessing(false);
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+
   const sendData = async (inputtedUrl: string, fileUUID: string, userID: string, fileName: string) => {
     if (!uploadedFile) return;
     
@@ -356,25 +397,24 @@ const AudioEffectsDetector: React.FC = () => {
       
       try {
 
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_ENDPOINT}/results`, {
-          method:"POST",
-          headers:{
+        const res = await fetchWithTimeout({
+          url: `${import.meta.env.VITE_BACKEND_ENDPOINT}/results`,
+          method: "POST",
+          headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({supabase_file_link: inputtedUrl})
-          
+          body: JSON.stringify({ supabase_file_link: inputtedUrl }),
+          timeout: 10000, // 10 seconds
         });
 
-        if (!res.ok){
-          const text = await res.text();
-          console.log("Error fetching result: ", res.status, text);
+        if (!res || !res.ok) {
+          const text = res ? await res.text() : "No response";
+          console.log("Error fetching result: ", res?.status ?? "timeout", text);
           return;
-
         }
 
         const data = await res.json();
-        
-        console.log(data)
+        console.log(data);
         setEffects(data.result);
         setIsProcessing(false);
         
