@@ -190,7 +190,7 @@ const AudioEffectsDetector: React.FC = () => {
     const { data, error } = await supabase.rpc('decrement_uses');
 
     if (error) {
-      console.error("Failed to decrement usage:", error.message);
+      //console.error("Failed to decrement usage:", error.message);
       return false;
     }
 
@@ -236,7 +236,7 @@ const AudioEffectsDetector: React.FC = () => {
     if (file && file.type === 'audio/wav') {
       const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB in bytes
       if (file.size > MAX_FILE_SIZE) {
-        console.log("File too large")
+        //console.log("File too large")
         showAlert("File is too large! Please upload a file smaller than 15 MB.");
         return;
       }
@@ -290,11 +290,11 @@ const AudioEffectsDetector: React.FC = () => {
       //send the data to the supabase table in addition to the storage service
       const fileUUID: string = crypto.randomUUID();
       
-      console.log("File UUID:", fileUUID);
+      //console.log("File UUID:", fileUUID);
       
   
       const path = `${user?.id}/detections/${fileUUID}`;
-      console.log(path);
+      //console.log(path);
   
       
       
@@ -308,17 +308,17 @@ const AudioEffectsDetector: React.FC = () => {
         });
   
       if (error){
-        console.log("Upload error: ", error);
+        //console.log("Upload error: ", error);
         return null;
       }
   
       const publicFileUrl = await getPublicURL("detectfx-bucket", path);
       
       if (publicFileUrl) {
-        console.log("File URL:", publicFileUrl);
+        //console.log("File URL:", publicFileUrl);
         await sendData(publicFileUrl, fileUUID, user!.id, file.name);  // ✅ Will run after URL is ready
       } else {
-        console.error("Public file URL could not be generated.");
+        //console.error("Public file URL could not be generated.");
       }
       
   
@@ -333,12 +333,12 @@ const AudioEffectsDetector: React.FC = () => {
     
     const {error} = await supabase.from("files").insert({file_id: fileUUID, uploader_id: userID, file_name: fileName, processed_result: effects, file_storage_link: fileURL});
     if (error){
-      console.log("Error uploading file to table:", error.message);
-      console.log("File ID:", fileUUID);
-      console.log("User ID:", userID);
+      //console.log("Error uploading file to table:", error.message);
+      //console.log("File ID:", fileUUID);
+      //console.log("User ID:", userID);
       return;
     } else {
-      console.log("Successfully uploaded file to table");
+      //console.log("Successfully uploaded file to table");
     }
   }
 
@@ -397,7 +397,7 @@ const fetchWithTimeout = async ({
       
       try {
         //
-        console.log("Fetching the send data");
+        //console.log("Fetching the send data");
         const res = await fetch(`${import.meta.env.VITE_BACKEND_ENDPOINT}/results`, {
           method: "POST",
           headers: {
@@ -405,24 +405,24 @@ const fetchWithTimeout = async ({
           },
           body: JSON.stringify({ supabase_file_link: inputtedUrl }),
         });
-        console.log("Able to send the data");
+        //console.log("Able to send the data");
 
 
         if (!res || !res.ok) {
           const text = res ? await res.text() : "No response";
-          console.log("Error fetching result: ", res?.status ?? "timeout", text);
+          //console.log("Error fetching result: ", res?.status ?? "timeout", text);
           return;
         }
 
         const data = await res.json();
-        console.log(data);
+        //console.log(data);
         setEffects(data.result);
         setIsProcessing(false);
         
 
         await updateTable(fileUUID, userID, fileName, data.result, inputtedUrl);
       } catch (error) {
-        console.log("Error:", error);
+        //console.log("Error:", error);
       }
     }
 

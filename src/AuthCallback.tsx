@@ -10,7 +10,7 @@ const AuthCallback = () => {
       const { data, error } = await supabase.auth.getSession();
 
       if (error) {
-        console.error("Error retrieving session:", error.message);
+        //console.error("Error retrieving session:", error.message);
         navigate("/auth");
         return;
       }
@@ -19,7 +19,7 @@ const AuthCallback = () => {
         sessionStorage.setItem("supabaseSession", JSON.stringify(data.session));
         navigate("/dashboard");
       } else {
-        console.warn("No session found.");
+        //console.warn("No session found.");
         navigate("/auth");
       }
     };

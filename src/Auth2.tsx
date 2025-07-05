@@ -57,7 +57,7 @@ export default function Auth() {
       }
       window.location.href = "/auth/callback";
     } catch (error) {
-      console.error('Sign up error:', error);
+      //console.error('Sign up error:', error);
     } finally {
       setIsLoading(false);
       setLoadingType('');
@@ -80,7 +80,7 @@ export default function Auth() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        console.log('User:', user);
+        //console.log('User:', user);
         await supabase.from('users').upsert({
           id: user.id,
           email: user.email,
@@ -90,7 +90,7 @@ export default function Auth() {
       }
       window.location.href = "/auth/callback";
     } catch (error) {
-      console.error('Sign in error:', error);
+      //console.error('Sign in error:', error);
     } finally {
       setIsLoading(false);
       setLoadingType('');
@@ -106,9 +106,9 @@ export default function Auth() {
         provider
         
       });
-      if (error) console.error('OAuth error:', error.message);
+      //if (error) console.error('OAuth error:', error.message);
     } catch (error) {
-      console.error('OAuth error:', error);
+      //console.error('OAuth error:', error);
     } finally {
       setIsLoading(false);
       setLoadingType('');

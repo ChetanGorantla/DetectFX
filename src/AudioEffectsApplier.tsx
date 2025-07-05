@@ -56,11 +56,11 @@ const AudioEffectsApplier: React.FC = () => {
       
   
       const cleanPath = `${user?.id}/recreations/${processUUID}/${cleanFileUUID}.wav`;
-      console.log("Clean path:", cleanPath);
+      //console.log("Clean path:", cleanPath);
       const referencePath = `${user?.id}/recreations/${processUUID}/${referenceFileUUID}.wav`;
-      console.log("Reference path:", referencePath);
+      //console.log("Reference path:", referencePath);
       const generatedPath = `${user?.id}/recreations/${processUUID}/${generatedUUID}.wav`;
-      console.log("Generated path:", generatedPath);
+      //console.log("Generated path:", generatedPath);
 
       
   
@@ -82,10 +82,10 @@ const AudioEffectsApplier: React.FC = () => {
         const { data: cleanData, error: cleanError } = cleanResult;
         const { data: refData, error: refError } = refResult;
         if (cleanError || refError) {
-            console.error("Upload error:", cleanError ?? refError);
+            //console.error("Upload error:", cleanError ?? refError);
         } else {
-            console.log("Clean file uploaded to:", cleanData?.path);
-            console.log("Reference file uploaded to:", refData?.path);
+            //console.log("Clean file uploaded to:", cleanData?.path);
+            //console.log("Reference file uploaded to:", refData?.path);
         }
 
 
@@ -97,11 +97,11 @@ const AudioEffectsApplier: React.FC = () => {
       
 
       const processedName = uploadedCleanFile?.name.toString().split(".wav")[0] + "_processed.wav";
-      console.log(processedName);
+      //console.log(processedName);
       
       if (publicCleanFileUrl && publicReferenceFileUrl) {
-        console.log("publicCleanFileUrl:", publicCleanFileUrl);
-        console.log("publicReferenceFileUrl:", publicReferenceFileUrl);
+        //console.log("publicCleanFileUrl:", publicCleanFileUrl);
+        //console.log("publicReferenceFileUrl:", publicReferenceFileUrl);
         await sendData(processUUID, user!.id, cleanFileUUID, referenceFileUUID, uploadedCleanFile!.name, uploadedReferenceFile!.name, publicCleanFileUrl, publicReferenceFileUrl, generatedUUID, processedName,generatedPath);  // ✅ Will run after URL is ready
       } else {
         console.error("Public clean & reference file URLs could not be generated.");
@@ -119,10 +119,10 @@ const AudioEffectsApplier: React.FC = () => {
         
         const {error} = await supabase.from("replication_files").insert({process_id: process_id, uploader_id: uploader_id, clean_id: clean_id, reference_id: reference_id, clean_name: clean_name, reference_name: reference_name, clean_storage_link: clean_storage_link, reference_storage_link: reference_storage_link, generated_id: generated_id, generated_name: generated_name, generated_storage_link: generated_storage_link});
         if (error){
-          console.log("Error uploading file to table:", error.message);
+          //console.log("Error uploading file to table:", error.message);
           return;
         } else {
-          console.log("Successfully uploaded file to table");
+          //console.log("Successfully uploaded file to table");
         }
         setIsProcessing(false);
         setIsComplete(true);
@@ -153,22 +153,22 @@ const AudioEffectsApplier: React.FC = () => {
 
         if (!res.ok){
           const text = await res.text();
-          console.log("Error fetching result: ", res.status, text);
+          //console.log("Error fetching result: ", res.status, text);
           return;
 
         }
 
         const data = await res.json();
-        console.log("Ready to access generated file ", generated_name, " at ", generated_storage_link);
+        //console.log("Ready to access generated file ", generated_name, " at ", generated_storage_link);
         const publicGeneratedFileUrl = await getPublicURL("detectfx-bucket", generated_storage_link);
-        console.log("Generated total file path:", publicGeneratedFileUrl);
+        //console.log("Generated total file path:", publicGeneratedFileUrl);
         //generated_storage_link is truncated because of what happened in audiotest.py so need to populate it again
         
         setGeneratedFileUrl(publicGeneratedFileUrl);
         setGeneratedFileName(generated_name);
         await updateTable(process_id, userID, cleanUUID, referenceUUID, cleanName, referenceName, clean_storage_link, reference_storage_link, generated_id, generated_name, publicGeneratedFileUrl);
       } catch (error) {
-        console.log("Error:", error);
+        //console.log("Error:", error);
       }
     }
 
@@ -177,7 +177,7 @@ const AudioEffectsApplier: React.FC = () => {
         const { data, error } = await supabase.rpc('decrement_uses');
     
         if (error) {
-          console.error("Failed to decrement usage:", error.message);
+          //console.error("Failed to decrement usage:", error.message);
           return false;
         }
     

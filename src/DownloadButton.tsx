@@ -18,7 +18,7 @@ const DownloadButton: React.FC<{ generatedFileUrl: string, generatedFileName:str
       a.remove();
       window.URL.revokeObjectURL(downloadUrl); // cleanup
     } catch (error) {
-      console.error("Error downloading file:", error);
+      //console.error("Error downloading file:", error);
     }
   };
 
