@@ -5,7 +5,7 @@ import Auth2 from './Auth2';
 import {supabase} from './supabase-client';
 import TabComponent from './TabComponent';
 import LandingPage from './LandingPage';
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 
 
 function App() {
