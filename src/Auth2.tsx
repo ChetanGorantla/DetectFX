@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, User, Chrome, Eye, EyeOff, Loader2, Sparkles } from 'lucide-react';
 import {supabase} from './supabase-client';
-import { useNavigate } from 'react-router-dom';
+//import { useNavigate } from 'react-router-dom';
 import CustomAlert from './CustomAlert';
 
 
@@ -13,7 +13,7 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingType, setLoadingType] = useState('');
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
 
   const [alertInfo, setAlertInfo] = useState<{ id: string; message: string } | null>(null);
     
