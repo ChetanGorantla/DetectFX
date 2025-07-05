@@ -622,6 +622,17 @@ const fetchWithTimeout = async ({
           effectValue={selectedEffect?.value || 0}
         />
       </div>
+      {/* Footer */}
+      <footer className="relative z-20 px-6 py-12 border-t border-white/10 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="max-w-7xl mx-auto text-center">
+          
+          <div className="text-gray-400 mx-auto leading-relaxed">
+            <p>Functions may be prone to bugs.</p>
+            <p>If your files don't load for a while, try uploading different ones.</p>
+            
+          </div>
+        </div>
+      </footer> 
     </div>
   );
 };
