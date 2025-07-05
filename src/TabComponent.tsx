@@ -218,7 +218,7 @@ const TabComponent: React.FC = () => {
         <div className="max-w-7xl mx-auto text-center">
           <div className="text-gray-400 mx-auto leading-relaxed">
             <p>Functions may be prone to bugs.</p>
-            <p>If your files don't load for a while, try uploading different ones.</p>
+            <p>If your files load for more than 2 minutes, try uploading different ones.</p>
           </div>
         </div>
       </footer>

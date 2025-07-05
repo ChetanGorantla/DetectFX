@@ -5,7 +5,7 @@ import Auth2 from './Auth2';
 import {supabase} from './supabase-client';
 import TabComponent from './TabComponent';
 import LandingPage from './LandingPage';
-
+import { Analytics } from "@vercel/analytics/next"
 
 
 function App() {
@@ -36,7 +36,8 @@ function App() {
   }, []);
 
   return (
-    <div>
+    <>
+    
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -46,8 +47,9 @@ function App() {
           {/* Add more routes as needed */}
         </Routes>
       </Router>
+      <Analytics/>
       
-    </div>
+    </>
   )
 }
 
