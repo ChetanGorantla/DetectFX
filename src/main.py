@@ -15,13 +15,23 @@ from scripts.retrieveEffects import classify, testClassify
 from scripts.audiotest import generate
 
 
+app = FastAPI()
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://detect-fx.vercel.app"],  # Or use your frontend domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 router = APIRouter()
+app.include_router(router)
 HEROKU_API_KEY = os.getenv("HEROKU_API_KEY")
 HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
 HEROKU_LINK = os.getenv("VITE_BACKEND_ENDPOINT")
-RAM_LIMIT_MB = 800
+RAM_LIMIT_MB = 600
 
 @router.get("/watchdog")
 def watchdog():
@@ -65,16 +75,7 @@ def ping_watchdog():
 
 clf = joblib.load('./data/EGF_trained_model.pkl')
 
-app = FastAPI()
-app.include_router(router)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://detect-fx.vercel.app"],  # Or use your frontend domain
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 
