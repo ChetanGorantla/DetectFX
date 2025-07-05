@@ -213,10 +213,21 @@ const TabComponent: React.FC = () => {
         </div>
         */}
       </div>
+      {/* Footer */}
+      <footer className="relative z-20 px-6 py-12 border-t border-white/10 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="max-w-7xl mx-auto text-center">
+          
+          <div className="text-gray-400 mx-auto leading-relaxed">
+            <p>Functions may be prone to bugs.</p>
+            <p>If your files don't load for a while, try uploading different ones.</p>
+            
+          </div>
+        </div>
+      </footer> 
       
       
       {/* Floating Background Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-20 left-20 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-blue-400/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
