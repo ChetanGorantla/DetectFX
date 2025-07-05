@@ -6,19 +6,11 @@ const AuthCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleOAuth = async () => {
-      const code = new URLSearchParams(window.location.search).get("code");
-
-      if (!code) {
-        console.error("No `code` found in URL.");
-        navigate("/auth");
-        return;
-      }
-
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    const handleRedirect = async () => {
+      const { data, error } = await supabase.auth.getSession();
 
       if (error) {
-        console.error("OAuth exchange error:", error.message); // 👈 check here
+        console.error("Error retrieving session:", error.message);
         navigate("/auth");
         return;
       }
@@ -27,14 +19,19 @@ const AuthCallback = () => {
         sessionStorage.setItem("supabaseSession", JSON.stringify(data.session));
         navigate("/dashboard");
       } else {
+        console.warn("No session found.");
         navigate("/auth");
       }
     };
 
-    handleOAuth();
+    handleRedirect();
   }, [navigate]);
 
-  return <div className="text-white">Signing you in...</div>;
+  return (
+    <div className="min-h-screen flex justify-center items-center text-white bg-black">
+      Signing you in...
+    </div>
+  );
 };
 
 export default AuthCallback;
